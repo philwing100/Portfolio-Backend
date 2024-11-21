@@ -58,13 +58,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Authentication middleware
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  } else {
-    return res.status(401).json({ message: 'Unauthorized access, please login.' });
-  }
-};
+const isAuthenticated = (req, res, next) => req.isAuthenticated() ? next() : res.status(401).json({
+  message: 'Unauthorized access, please login.'
+});
 
 // Define authentication routes that should not require `isAuthenticated`
 const authRoutes = ['/logout', '/auth'];
