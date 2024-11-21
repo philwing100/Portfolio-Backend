@@ -3,17 +3,17 @@ const router = express.Router();
 const pool = require('../databaseConnection/database');
 
 // Middleware to check if the user is authenticated
-function isAuthenticated(req, res, next) {
+const isAuthenticated = function isAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     console.log('they is authed for lists');
     return next();
   }
-  res.status(401).json({ message: 'Unauthorized' });
+  return res.status(401).json({ message: 'Unauthorized' });
 }
 
 // CRUD Functions for Lists
 // 1. Create a new list
-const createList = async (req, res) => {
+const createList = async function createList(req, res) {
   console.log('top of create list)');
   const { list_title, list_description } = req.body;
   const { userID } = req.user; // Assuming userID is available in req.user if authenticated
@@ -27,26 +27,26 @@ const createList = async (req, res) => {
     );
     res.status(201).json({ message: 'List created successfully', listID: result[0].listID });
   } catch (err) {
-    console.error('Error creating list:', err);
+    console.warn('Error creating list:', err,...arguments);
     res.status(500).json({ message: 'Error creating list' });
   }
 };
 
 // 2. Read all lists (or one list by ID)
-const getLists = async (req, res) => {
+const getLists = async function getLists(req, res) {
   try {
     const promisePool = pool.promise();
     // Query to fetch lists from the database
     const [lists] = await promisePool.query('SELECT * FROM lists');
     res.json({ lists });
   } catch (err) {
-    console.error('Error fetching lists:', err);
+    console.warn('Error fetching lists:', err,...arguments);
     res.status(500).json({ message: 'Error fetching lists' });
   }
 };
 
 // 3. Update a list by ID
-const updateList = async (req, res) => {
+const updateList = async function updateList(req, res) {
   const { id } = req.params;
   const { list_title, list_description } = req.body;
   
@@ -59,12 +59,12 @@ const updateList = async (req, res) => {
     );
     res.json({ message: 'List updated successfully' });
   } catch (err) {
-    console.error('Error updating list:', err);
+    console.warn('Error updating list:', err,...arguments);
     res.status(500).json({ message: 'Error updating list' });
   }
 };
 
-const deleteList = async (req, res) => {
+const deleteList = async function deleteList(req, res) {
   const { id } = req.params;
   const { userID } = req.user; // Assuming the userID is available in req.user if authenticated
 
@@ -85,7 +85,7 @@ const deleteList = async (req, res) => {
 
     res.json({ message: 'List and all associated items deleted successfully' });
   } catch (err) {
-    console.error('Error deleting list and items:', err);
+    console.error('Error deleting list and items:', err,...arguments);
     res.status(500).json({ message: 'Error deleting list and items' });
   }
 };
