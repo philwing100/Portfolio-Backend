@@ -14,7 +14,7 @@ passport.use(new GoogleStrategy({
   // Force Google to show account selection
   prompt: 'select_account'
 },
-  async (req, accessToken, refreshToken, profile, done) => {
+  async function googleStrategy(req, accessToken, refreshToken, profile, done) {
     try {
       const googleId = profile.id;
       const email = profile.emails[0].value;
@@ -30,22 +30,23 @@ passport.use(new GoogleStrategy({
         return done(null, newUserResults[0]);
       }
     } catch (err) {
-      console.error('Error during Google authentication:', err);
+      console.warn('Error during Google authentication:', err,...arguments);
       return done(err);
     }
   }));
 
 
 // Serialize and deserialize user
-passport.serializeUser((user, done) => {
+passport.serializeUser(function serializeUser(user, done) {
   done(null, user.userID);
 });
 
-passport.deserializeUser(async (userID, done) => {
+passport.deserializeUser(async function deserializeUser(userID, done) {
   try {
     const [results] = await pool.promise().query('SELECT * FROM users WHERE userID = ?', [userID]);
     done(null, results[0]);
   } catch (err) {
+    console.warn(err,...arguments);
     done(err);
   }
 });
@@ -64,7 +65,7 @@ router.get('/google/callback',
 );
 
 // Success route
-router.get('/success', (req, res) => {
+router.get('/success', function success(req, res) {
   if (req.isAuthenticated()) {
     // Redirecting back to the dashboard while sending the session cookie
     res.cookie('sessionId', req.sessionID, { httpOnly: process.env.NODE_ENV === 'production', secure: process.env.NODE_ENV === 'production' });
@@ -74,18 +75,18 @@ router.get('/success', (req, res) => {
   }
 });
 
-router.get('/failure', (req, res) => {
+router.get('/failure', function failure(req, res) {
   res.status(401).json({ message: 'Login failed' });
 });
 
 // Logout route
-router.post('/logout', (req, res) => {
-  req.logout((err) => {
+router.post('/logout', function logout(req, res) {
+  req.logout(function logout(err){
     if (err) {
-      console.error('Error logging out:', err);
+      console.warn('Error logging out:', err,...arguments);
       return res.status(500).json({ message: 'Logout failed' });
     }
-    req.session.destroy(() => { // Destroy session after logout
+    req.session.destroy(function destroy(){ // Destroy session after logout
       res.clearCookie('sessionId'); // Clear any session cookie if needed
       res.status(200).json({ message: 'Logged out successfully' });
     });
@@ -93,7 +94,7 @@ router.post('/logout', (req, res) => {
 });
 
 // Route to check if user is authenticated
-router.get('/check-auth', (req, res) => {
+router.get('/check-auth',function checkAuth(req, res) {
   if (req.isAuthenticated()) {
     res.json({ user: req.user });
   } else {
