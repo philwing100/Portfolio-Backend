@@ -2,13 +2,13 @@ const express = require('express');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const pool = require('../databaseConnection/database'); // Database connection
-const dbinfo = require('../databaseConnection/dbinfo.json'); // Contains Google OAuth credentials
+require('dotenv').config();
 
 const router = express.Router();
 
 passport.use(new GoogleStrategy({
-  clientID: dbinfo.googleClientId,
-  clientSecret: dbinfo.googleClientSecret,
+  clientID: process.env.googleClientId,
+  clientSecret: process.env.googleClientSecret,
   callbackURL: '/api/auth/google/callback',
   passReqToCallback: true,
   // Force Google to show account selection

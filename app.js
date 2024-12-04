@@ -6,11 +6,11 @@ const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const pool = require('./databaseConnection/database'); // Database pool connection
-const dbinfo = require('./databaseConnection/dbinfo.json'); // Contains session secrets
 const cookieParser = require('cookie-parser');
+require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3000// || process.env.PORT ;
 
 // Session store options
 const options = {
@@ -40,8 +40,8 @@ app.use(cors({
 
 // Session middleware configuration
 app.use(session({
-  key: dbinfo.key, // Unique session key
-  secret: dbinfo.secret, // Secret used to sign the session cookie
+  key: process.env.key, // Unique session key
+  secret: process.env.secret, // Secret used to sign the session cookie
   store: sessionStore, // Store session in MySQL
   resave: false,
   saveUninitialized: false,

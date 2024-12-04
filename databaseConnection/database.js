@@ -1,14 +1,14 @@
 // database.js
 
 const mysql = require('mysql2');
-const db = require('./dbinfo'); // Adjust path as needed
+require('dotenv').config();
 
 const pool = mysql.createPool({
-  host: db.host,
-  user: db.user,
-  password: db.password,
-  database: db.name,
-  port: db.port,
+  host: process.env.host,
+  user: process.env.user,
+  password: process.env.password,
+  database: process.env.name,
+  port: process.env.port,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
