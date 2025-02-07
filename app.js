@@ -23,7 +23,7 @@ const options = {
     }
   }
 };
-
+//
 // Create a session store using MySQL
 const sessionStore = new MySQLStore(options, pool.promise());
 
@@ -46,7 +46,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 30, // Set cookie lifespan (30 minutes)
+    maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
     secure: false, // Set true if using HTTPS (adjust for production)
     sameSite: 'lax',
