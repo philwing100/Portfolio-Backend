@@ -11,7 +11,7 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.FRONTENDPORT || 3000;
-const frontendPath =  port === 3000 ? "http://localhost:8080" : "";
+const frontendPath =  port === 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app/";
 
 // Session store options
 const options = {
