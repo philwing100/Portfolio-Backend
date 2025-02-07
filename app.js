@@ -85,6 +85,10 @@ const routes = require('./routes/index');
 app.use('/api', routes); // Apply isAuthenticated globally to `/api` routes
 
 // Start server
+if(port === 3000){
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+} else{
+  module.exports = app;
+}
