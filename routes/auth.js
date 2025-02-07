@@ -6,6 +6,9 @@ require('dotenv').config();
 
 const router = express.Router();
 
+const port = process.env.FRONTENDPORT || 3000;
+const frontendPath =  port === 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app/";
+
 passport.use(new GoogleStrategy({
   clientID: process.env.googleClientId,
   clientSecret: process.env.googleClientSecret,
@@ -69,7 +72,7 @@ router.get('/success', function success(req, res) {
   if (req.isAuthenticated()) {
     // Redirecting back to the dashboard while sending the session cookie
     res.cookie('sessionId', req.sessionID, { httpOnly: process.env.NODE_ENV === 'production', secure: process.env.NODE_ENV === 'production' });
-    return res.redirect('http://localhost:8080/'); // Redirecting to the Vue app's dashboard
+    return res.redirect(frontendPath); // Redirecting to the Vue app's dashboard
   } else {
     res.status(401).json({ message: 'User not authenticated' });
   }
