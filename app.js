@@ -10,7 +10,8 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
-const port = 3000// || process.env.PORT ;
+const port = process.env.FRONTENDPORT || 3000;
+const frontendPath =  port === 3000 ? "http://localhost:8080" : "";
 
 // Session store options
 const options = {
@@ -34,7 +35,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Enable CORS with credentials to allow cookie usage across origins
 app.use(cors({
-  origin: 'http://localhost:8080', // Your frontend origin
+  origin: frontendPath, // Your frontend origin
   credentials: true, // Allow cookies and credentials to be shared
 }));
 
