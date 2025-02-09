@@ -35,9 +35,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(cors({
   origin: frontendPath,  // Replace with your actual frontend URL
-  credentials: true, // ✅ Allows cookies to be sent
+  credentials: true, // ✅ Allows cookies to be sent 
+  /*
   methods: ["GET", "POST", "PUT", "DELETE"], // Allow all needed HTTP methods
-  allowedHeaders: ["Content-Type", "Authorization"], // Allow needed headers
+  allowedHeaders: ["Content-Type", "Authorization"], // Allow needed headers */
 }));
 
 app.use(session({
