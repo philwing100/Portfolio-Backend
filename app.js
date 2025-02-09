@@ -50,7 +50,7 @@ app.use(session({
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // ✅ Secure only in production
-    sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 }));
 console.log(process.env.NODE_ENV);
