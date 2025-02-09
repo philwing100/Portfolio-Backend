@@ -36,9 +36,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({
   origin: frontendPath,  // Replace with your actual frontend URL
   credentials: true, // ✅ Allows cookies to be sent 
-  /*
   methods: ["GET", "POST", "PUT", "DELETE"], // Allow all needed HTTP methods
-  allowedHeaders: ["Content-Type", "Authorization"], // Allow needed headers */
+  allowedHeaders: ["Content-Type", "Authorization"], //These 2 are not the problem
 }));
 
 app.use(session({
@@ -50,7 +49,7 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // ✅ Secure only in production
+    secure: false, //process.env.NODE_ENV === "production", // ✅ Secure only in production
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 }));
