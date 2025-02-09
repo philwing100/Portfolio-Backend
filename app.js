@@ -11,7 +11,7 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.FRONTENDPORT || 3000;
-const frontendPath =  port === 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
+const frontendPath =  port == 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
 
 // Session store options
 const options = {
@@ -33,13 +33,13 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Enable CORS with credentials to allow cookie usage across origins
 app.use(cors({
-  origin: frontendPath, // Your frontend origin
-  credentials: true, // Allow cookies and credentials to be shared
+  origin: frontendPath,  // Replace with your actual frontend URL
+  credentials: true, // ✅ Allows cookies to be sent
+  methods: ["GET", "POST", "PUT", "DELETE"], // Allow all needed HTTP methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allow needed headers
 }));
 
-// Session middleware configuration
 app.use(session({
   key: process.env.key, // Unique session key
   secret: process.env.secret, // Secret used to sign the session cookie
@@ -50,7 +50,7 @@ app.use(session({
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
     secure: false, // Set true if using HTTPS (adjust for production)
-    sameSite: 'lax',
+    sameSite: 'none',
   },
 }));
 
@@ -85,7 +85,7 @@ const routes = require('./routes/index');
 app.use('/api', routes); // Apply isAuthenticated globally to `/api` routes
 
 // Start server
-if(port === 3000){
+if(port == 3000){
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

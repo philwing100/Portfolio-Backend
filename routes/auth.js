@@ -7,7 +7,7 @@ require('dotenv').config();
 const router = express.Router();
 
 const port = process.env.FRONTENDPORT || 3000;
-const frontendPath =  port === 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
+const frontendPath =  port == 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
 
 passport.use(new GoogleStrategy({
   clientID: process.env.googleClientId,
