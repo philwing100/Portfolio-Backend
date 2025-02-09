@@ -11,7 +11,7 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.FRONTENDPORT || 3000;
-const frontendPath =  port == 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
+const frontendPath = port == 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
 
 // Session store options
 const options = {
@@ -49,8 +49,8 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
-    secure: false, // Set true if using HTTPS (adjust for production)
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === "production", // ✅ Secure only in production
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 }));
 
