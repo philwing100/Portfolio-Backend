@@ -63,6 +63,7 @@ app.use(passport.session());
 const isAuthenticated = (req, res, next) => req.isAuthenticated() ? next() : res.status(401).json({
   message: 'Unauthorized access, please login.'
 });
+console.log('bruh');
 
 // Define authentication routes that should not require `isAuthenticated`
 const authRoutes = ['/logout', '/auth'];
