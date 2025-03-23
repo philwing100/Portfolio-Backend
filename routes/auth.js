@@ -72,10 +72,17 @@ router.get('/google/callback',
 router.get('/success', function success(req, res) {
   console.log(req.isAuthenticated());
   console.log("Session Data:", req.session);
+  
   if (req.isAuthenticated()) {
-    // Redirecting back to the dashboard while sending the session cookie
-    res.cookie('sessionId', req.sessionID, { httpOnly: process.env.NODE_ENV === 'production', secure: process.env.NODE_ENV === 'production' });
-    return res.redirect(frontendPath); // Redirecting to the Vue app's dashboard
+    // Manually set the sessionId cookie with same settings as express-session
+    res.cookie('sessionId', req.sessionID, { 
+      httpOnly: true,  // ✅ Matches session settings for security
+      secure: process.env.NODE_ENV === 'production',  // ✅ Ensures HTTPS in production
+      sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",  // ✅ Matches session settings
+      maxAge: 1000 * 60 * 120 // ✅ 2 hours like express-session
+    });
+
+    return res.redirect(frontendPath);  
   } else {
     res.status(401).json({ message: 'User not authenticated' });
   }
