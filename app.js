@@ -41,7 +41,6 @@ app.use(cors({
 
 // Session middleware configuration
 app.use(session({
-  name: "connect.sid",
   key: process.env.key, // Unique session key
   secret: process.env.secret, // Secret used to sign the session cookie
   store: sessionStore, // Store session in MySQL
@@ -50,8 +49,8 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
-    secure: false,//process.env.NODE_ENV === "production" ? true : false, // ✅ Secure only in production 
-    sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
+    secure: process.env.NODE_ENV === "production" ? true : false, // ✅ Secure only in production 
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 }));
 console.log(process.env.NODE_ENV);
