@@ -45,6 +45,7 @@ app.use(session({
   secret: process.env.secret, // Secret used to sign the session cookie
   store: sessionStore, // Store session in MySQL
   resave: false,
+  origin: process.env.origin,
   saveUninitialized: false,
   cookie: {
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
