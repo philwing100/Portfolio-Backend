@@ -49,8 +49,8 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
-    secure: false, // ✅ Secure only in production 
-    sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
+    secure: process.env.NODE_ENV === "production" ? true : false, // ✅ Secure only in production 
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 }));
 console.log(process.env.NODE_ENV);
