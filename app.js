@@ -50,7 +50,7 @@ app.use(session({
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false, // ✅ Secure only in production 
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "none",
   },
 }));
 console.log(process.env.NODE_ENV);
@@ -84,6 +84,7 @@ app.use('/api', (req, res, next) => {
 // Import and use routes
 const routes = require('./routes/index');
 app.use('/api', routes); // Apply isAuthenticated globally to `/api` routes
+app.set('trust proxy', 1); 
 
 // Start server
 if(port == 3000){
