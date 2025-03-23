@@ -41,6 +41,7 @@ app.use(cors({
 
 // Session middleware configuration
 app.use(session({
+  name: "connect.sid",
   key: process.env.key, // Unique session key
   secret: process.env.secret, // Secret used to sign the session cookie
   store: sessionStore, // Store session in MySQL
@@ -64,6 +65,7 @@ const isAuthenticated = (req, res, next) => req.isAuthenticated() ? next() : res
   message: 'Unauthorized access, please login.'
 });
 
+app.set('trust proxy', 1);
 // Define authentication routes that should not require `isAuthenticated`
 const authRoutes = ['/logout', '/auth'];
 
@@ -84,7 +86,6 @@ app.use('/api', (req, res, next) => {
 // Import and use routes
 const routes = require('./routes/index');
 app.use('/api', routes); // Apply isAuthenticated globally to `/api` routes
-app.set('trust proxy', 1); 
 
 // Start server
 if(port == 3000){
