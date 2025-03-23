@@ -26,6 +26,7 @@ passport.use(new GoogleStrategy({
       const [results] = await pool.promise().query('SELECT * FROM users WHERE google_id = ?', [googleId]);
       console.log('Found this many users: ' + results.length);
       if (results.length > 0) {
+        console.log(results[0]);
         return done(null, results[0]);
       } else {
         await pool.promise().query('INSERT INTO users (google_id, email) VALUES (?, ?)', [googleId, email]);
@@ -69,6 +70,8 @@ router.get('/google/callback',
 
 // Success route
 router.get('/success', function success(req, res) {
+  console.log(req.isAuthenticated());
+  console.log("Session Data:", req.session);
   if (req.isAuthenticated()) {
     // Redirecting back to the dashboard while sending the session cookie
     res.cookie('sessionId', req.sessionID, { httpOnly: process.env.NODE_ENV === 'production', secure: process.env.NODE_ENV === 'production' });

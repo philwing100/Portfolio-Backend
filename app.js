@@ -49,7 +49,7 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
     httpOnly: true,
-    secure: true, //process.env.NODE_ENV === "production", // ✅ Secure only in production
+    secure: process.env.NODE_ENV === "production", // ✅ Secure only in production 
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 }));
@@ -63,7 +63,6 @@ app.use(passport.session());
 const isAuthenticated = (req, res, next) => req.isAuthenticated() ? next() : res.status(401).json({
   message: 'Unauthorized access, please login.'
 });
-console.log('bruh');
 
 // Define authentication routes that should not require `isAuthenticated`
 const authRoutes = ['/logout', '/auth'];
