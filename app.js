@@ -51,7 +51,7 @@ app.use(session({
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false, // ✅ Secure only in production 
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    domain: process.env.NODE_ENV === "production" ? ".vercel.app" : undefined
+    //domain: process.env.NODE_ENV === "production" ? ".vercel.app" : undefined
   },
 }));
 console.log(process.env.NODE_ENV);
