@@ -10,7 +10,6 @@ const createList = async function createList(req, res) {
     const { list_title, list_description, list_items: listItemsString} = JSON.parse(req.body.data);
     const list_items = JSON.parse(listItemsString);
     const userId = req.user.id;
-    console.log(list_items);
     console.log('attempting createlist');
     if (userId) {
       const promisePool = pool.promise();
@@ -18,7 +17,13 @@ const createList = async function createList(req, res) {
         'CALL Update_list(?, ?, ?)',
         [userId, list_title, list_description]
       );
-      console.log('console logging');
+      console.log('console logging:' + result[0][0]);
+      
+      const [result2] = await promisePool.query(
+        'CALL Delete_list_item(?, ?)',
+        [result[0][0].listID, userId]
+      );
+
       const promises = list_items.map((item) => {
         return promisePool.query(
           'CALL Update_list_item(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
@@ -51,14 +56,11 @@ const createList = async function createList(req, res) {
 
 // 2. Read all lists (or one list by ID)
 const getList = async function getList(req, res) {
-  console.log('in');
   try {
-    console.log('in');
     const promisePool = pool.promise();
     const userId = req.user.id; // Get the user ID from the JWT token
     const { list_title: listTitle } = req.body.params;
 
-    console.log(req);
     if (userId) {
       const [lists] = await promisePool.query(
         'CALL Fetch_list(?, ?)', [userId, listTitle]
@@ -71,7 +73,8 @@ const getList = async function getList(req, res) {
 
         // Merge the list and list_items
         const merged = { ...lists, ...list_items };
-
+        //console.log(list_items);
+        
         return res.json({ success: true, data: merged });
       } else {
         return res.json({ success: true, message: "No list exists for that title" });

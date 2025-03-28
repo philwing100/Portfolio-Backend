@@ -27,7 +27,6 @@ app.use(passport.initialize());
 const authenticateJWT = (req, res, next) => {
   console.log('testing');
   const token = req.headers['authorization'];
-  console.log(token);
   
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
