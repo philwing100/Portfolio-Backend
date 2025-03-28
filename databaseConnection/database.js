@@ -14,7 +14,6 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Testing the connection
 pool.getConnection((err, connection) => {
   if (err) {
     if (err.code === 'PROTOCOL_CONNECTION_LOST') {

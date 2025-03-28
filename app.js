@@ -1,35 +1,17 @@
-const express = require('express'); 
+const express = require('express');
 const path = require('path');
-const session = require('express-session');
 const passport = require('passport');
-const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const pool = require('./databaseConnection/database'); // Database pool connection
-const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken'); // Required for JWT verification
 require('dotenv').config();
 
 const app = express();
 const port = process.env.FRONTENDPORT || 3000;
 const frontendPath = port == 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
 
-// Session store options
-const options = {
-  schema: {
-    tableName: 'sessions',
-    columnNames: {
-      session_id: 'sessionID',
-      expires: 'expires',
-      data: 'data'
-    }
-  }
-};
-//
-// Create a session store using MySQL
-const sessionStore = new MySQLStore(options, pool.promise());
-
-// Middleware to parse cookies and JSON bodies
-app.use(cookieParser());
+// Middleware to parse JSON and URL-encoded data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -39,59 +21,53 @@ app.use(cors({
   credentials: true, // Allow cookies and credentials to be shared
 }));
 
-// Session middleware configuration
-app.use(session({
-  key: process.env.key, // Unique session key
-  secret: process.env.secret, // Secret used to sign the session cookie
-  store: sessionStore, // Store session in MySQL
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 1000 * 60 * 120, // Set cookie lifespan (30 minutes)
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production" ? true : false, // ✅ Secure only in production 
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    //domain: process.env.NODE_ENV === "production" ? ".vercel.app" : undefined
-  },
-}));
-console.log(process.env.NODE_ENV);
-
 // Initialize Passport for authentication
 app.use(passport.initialize());
-app.use(passport.session());
 
-// Authentication middleware
-const isAuthenticated = (req, res, next) => req.isAuthenticated() ? next() : res.status(401).json({
-  message: 'Unauthorized access, please login.'
-});
+const authenticateJWT = (req, res, next) => {
+  console.log('testing');
+  const token = req.headers['authorization'];
+  console.log(token);
+  
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
 
-app.set('trust proxy', 1);
-// Define authentication routes that should not require `isAuthenticated`
+  // Verify the token
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      console.log(err);
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+
+    // Attach the decoded user to the request
+    req.user = user;
+    next(); // Proceed to the next middleware or route handler
+  });
+};
+
+// Routes that should not require authentication (e.g., login, logout)
 const authRoutes = ['/logout', '/auth'];
 
-// Apply `isAuthenticated` to all `/api` routes except specified authentication routes
+// Apply JWT Authentication to all /api routes, except the ones defined in authRoutes
 app.use('/api', (req, res, next) => {
-  console.log(req.path);
   if (authRoutes.some(route => req.path.startsWith(route))) {
-    console.log('skipping');
-    // If the path starts with an authentication route, skip `isAuthenticated`
-    return next();
+    return next(); // Skip JWT authentication for auth routes
   } else {
-    // Apply `isAuthenticated` to all other `/api` routes
-    console.log('authenticating');
-    return isAuthenticated(req, res, next);
+    // Apply JWT authentication to all other /api routes
+    return authenticateJWT(req, res, next);
   }
 });
 
-// Import and use routes
+// Import and use routes (assuming routes are in 'routes/index.js')
 const routes = require('./routes/index');
-app.use('/api', routes); // Apply isAuthenticated globally to `/api` routes
+app.use('/api', routes); // Apply authenticateJWT middleware globally to /api routes
 
 // Start server
-if(port == 3000){
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-} else{
+if (port == 3000) {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+} else {
   module.exports = app;
 }

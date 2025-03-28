@@ -2,19 +2,20 @@ const express = require('express');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const pool = require('../databaseConnection/database'); // Database connection
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const router = express.Router();
 
 const port = process.env.FRONTENDPORT || 3000;
-const frontendPath =  port == 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
+const frontendPath = port == 3000 ? "http://localhost:8080" : "https://phillip-ring.vercel.app";
 
+// Google OAuth strategy
 passport.use(new GoogleStrategy({
   clientID: process.env.googleClientId,
   clientSecret: process.env.googleClientSecret,
   callbackURL: '/api/auth/google/callback',
   passReqToCallback: true,
-  // Force Google to show account selection
   prompt: 'select_account'
 },
   async function googleStrategy(req, accessToken, refreshToken, profile, done) {
@@ -24,95 +25,86 @@ passport.use(new GoogleStrategy({
 
       // Check if the user already exists
       const [results] = await pool.promise().query('SELECT * FROM users WHERE google_id = ?', [googleId]);
-      console.log('Found this many users: ' + results.length);
       if (results.length > 0) {
-        console.log(results[0]);
+        // If user exists, return user
+        console.log('retrieving from db' + results[0]);
         return done(null, results[0]);
       } else {
+        // If user does not exist, create new user
         await pool.promise().query('INSERT INTO users (google_id, email) VALUES (?, ?)', [googleId, email]);
         const [newUserResults] = await pool.promise().query('SELECT * FROM users WHERE google_id = ?', [googleId]);
         return done(null, newUserResults[0]);
       }
     } catch (err) {
-      console.warn('Error during Google authentication:', err,...arguments);
+      console.warn('Error during Google authentication:', err);
       return done(err);
     }
   }));
 
-
-// Serialize and deserialize user
-passport.serializeUser(function serializeUser(user, done) {
-  done(null, user.userID);
-});
-
-passport.deserializeUser(async function deserializeUser(userID, done) {
-  try {
-    const [results] = await pool.promise().query('SELECT * FROM users WHERE userID = ?', [userID]);
-    done(null, results[0]);
-  } catch (err) {
-    console.warn(err,...arguments);
-    done(err);
-  }
-});
-
-router.get('/google', passport.authenticate('google', { 
-  scope: ['email'], 
-  prompt: 'select_account'
+// Google login route
+router.get('/google', passport.authenticate('google', {
+  scope: ['email'],
+  prompt: 'select_account',
+  session: false 
 }));
 
 // Google callback route
 router.get('/google/callback',
   passport.authenticate('google', {
-    successRedirect: '/api/auth/success',
-    failureRedirect: '/api/auth/failure'
-  })
+    failureRedirect: '/api/auth/failure',
+    session: false 
+  }),
+  (req, res) => {
+    // If authentication is successful, generate a JWT token and redirect to frontend
+    const token = jwt.sign(
+      { id: req.user.userID, email: req.user.email },  // Create a payload with user data
+      process.env.JWT_SECRET,  // Secret key for JWT signing
+      { expiresIn: '2h' }  // Set token expiry time
+    );
+
+    console.log('assigniing token on login: '+ token);
+    const redirectUrl = `${frontendPath}/login?token=${token}`;
+    res.redirect(redirectUrl);  // Redirect to the frontend with the token in the URL
+  }
 );
 
-// Success route
-router.get('/success', function success(req, res) {
-  console.log(req.isAuthenticated());
-  console.log("Session Data:", req.session);
-  
-  if (req.isAuthenticated()) {
-    // Manually set the sessionId cookie with same settings as express-session
-    res.cookie('sessionId', req.sessionID, { 
-      httpOnly: true,  // ✅ Matches session settings for security
-      secure: process.env.NODE_ENV === 'production',  // ✅ Ensures HTTPS in production
-      sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax",  // ✅ Matches session settings
-      maxAge: 1000 * 60 * 120 // ✅ 2 hours like express-session
-    });
-
-    return res.redirect(frontendPath);  
-  } else {
-    res.status(401).json({ message: 'User not authenticated' });
-  }
-});
-
-router.get('/failure', function failure(req, res) {
+// Failure route for Google login
+router.get('/failure', (req, res) => {
   res.status(401).json({ message: 'Login failed' });
 });
 
 // Logout route
-router.post('/logout', function logout(req, res) {
-  req.logout(function logout(err){
+router.post('/logout', (req, res) => {
+  console.log('logged out');
+  res.status(200).json({ message: 'Logged out successfully' });
+});
+
+// Route to check if the user is authenticated using JWT (for protected routes)
+router.get('/check-auth', (req, res) => {
+  const token = req.headers['authorization'];
+  console.log("toke: "+ token);
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      console.warn('Error logging out:', err,...arguments);
-      return res.status(500).json({ message: 'Logout failed' });
+      console.log("Verify err: " + err);
+      return res.status(403).json({ message: 'Invalid or expired token' });
     }
-    req.session.destroy(function destroy(){ // Destroy session after logout
-      res.clearCookie('sessionId'); // Clear any session cookie if needed
-      res.status(200).json({ message: 'Logged out successfully' });
-    });
+
+    // If the token is valid, return user info
+    console.log('Checking auth: ' + user.email);
+    res.json({ user });
   });
 });
 
-// Route to check if user is authenticated
-router.get('/check-auth',function checkAuth(req, res) {
-  if (req.isAuthenticated()) {
-    res.json({ user: req.user });
-  } else {
-    res.status(401).json({ message: 'Not authenticated' });
+/*export function isAuthenticated(req){
+  const token = req.headers['authorization'];
+  console.log("toke: "+ token);
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
   }
-});
+}$*/
 
 module.exports = router;
